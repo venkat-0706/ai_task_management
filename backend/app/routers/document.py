@@ -20,12 +20,32 @@ UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
 
 
+@router.get("/")
+def get_documents(
+    current_user=Depends(get_current_user)
+):
+    documents = []
+
+    for file_path in UPLOAD_DIR.iterdir():
+
+        if not file_path.is_file():
+            continue
+
+        documents.append({
+            "filename": file_path.name,
+            "size": file_path.stat().st_size
+        })
+
+    return documents
+
+
 @router.post("/upload")
 async def upload_document(
     file: UploadFile = File(...),
     current_user=Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+
     if not file.filename:
         raise HTTPException(
             status_code=400,
@@ -40,7 +60,9 @@ async def upload_document(
             detail="Only PDF and TXT files are supported"
         )
 
-    file_path = UPLOAD_DIR / file.filename
+    safe_filename = Path(file.filename).name
+
+    file_path = UPLOAD_DIR / safe_filename
 
     contents = await file.read()
 
@@ -48,7 +70,9 @@ async def upload_document(
         output.write(contents)
 
     try:
+
         text = extract_text(str(file_path))
+
         chunks = chunk_text(text)
 
         create_embeddings(chunks)
@@ -56,7 +80,7 @@ async def upload_document(
         activity = ActivityLog(
             user_id=current_user.id,
             action="DOCUMENT_UPLOAD",
-            details=f"Uploaded document: {file.filename}"
+            details=f"Uploaded document: {safe_filename}"
         )
 
         db.add(activity)
@@ -64,12 +88,17 @@ async def upload_document(
 
         return {
             "message": "Document uploaded successfully",
-            "filename": file.filename,
+            "filename": safe_filename,
+            "size": len(contents),
             "chunks": len(chunks),
             "text_length": len(text)
         }
 
     except Exception as e:
+
+        if file_path.exists():
+            file_path.unlink()
+
         raise HTTPException(
             status_code=500,
             detail=f"Failed to process document: {str(e)}"
@@ -82,6 +111,7 @@ def search_documents(
     current_user=Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+
     results = search_similar(
         request.query,
         request.top_k
@@ -94,6 +124,7 @@ def search_documents(
     )
 
     db.add(activity)
+
     db.commit()
 
     return {

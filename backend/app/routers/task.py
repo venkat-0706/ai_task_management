@@ -16,6 +16,21 @@ router = APIRouter(
 )
 
 
+def create_activity(
+    db: Session,
+    user_id: int,
+    action: str,
+    details: str
+):
+    activity = ActivityLog(
+        user_id=user_id,
+        action=action,
+        details=details
+    )
+
+    db.add(activity)
+
+
 @router.get(
     "/",
     response_model=list[TaskResponse]
@@ -24,7 +39,7 @@ def get_tasks(
     status: str | None = None,
     priority: str | None = None,
     skip: int = 0,
-    limit: int = 10,
+    limit: int = 50,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
@@ -35,15 +50,23 @@ def get_tasks(
         )
     )
 
-    if status is not None:
-        query = query.filter(Task.status == status)
+    if status:
+        query = query.filter(
+            Task.status == status
+        )
 
-    if priority is not None:
-        query = query.filter(Task.priority == priority)
+    if priority:
+        query = query.filter(
+            Task.priority == priority
+        )
 
-    tasks = query.offset(skip).limit(limit).all()
-
-    return tasks
+    return (
+        query
+        .order_by(Task.id.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
 
 
 @router.post(
@@ -57,6 +80,7 @@ def create_task(
     current_user=Depends(get_current_user)
 ):
     if task_data.assigned_to is not None:
+
         assigned_user = db.query(User).filter(
             User.id == task_data.assigned_to,
             User.is_active == True
@@ -78,6 +102,15 @@ def create_task(
     )
 
     db.add(task)
+    db.flush()
+
+    create_activity(
+        db=db,
+        user_id=current_user.id,
+        action="TASK_CREATED",
+        details=f"Task {task.id} created: {task.title}"
+    )
+
     db.commit()
     db.refresh(task)
 
@@ -114,6 +147,10 @@ def get_task(
     "/{task_id}",
     response_model=TaskResponse
 )
+@router.patch(
+    "/{task_id}",
+    response_model=TaskResponse
+)
 def update_task(
     task_id: int,
     task_data: TaskUpdate,
@@ -137,6 +174,7 @@ def update_task(
     old_status = task.status
 
     if task_data.assigned_to is not None:
+
         assigned_user = db.query(User).filter(
             User.id == task_data.assigned_to,
             User.is_active == True
@@ -166,16 +204,24 @@ def update_task(
     if task_data.assigned_to is not None:
         task.assigned_to = task_data.assigned_to
 
-    activity = ActivityLog(
+    if (
+        old_status != task.status
+        and task.status == "completed"
+    ):
+        action = "TASK_COMPLETED"
+
+    else:
+        action = "TASK_UPDATED"
+
+    create_activity(
+        db=db,
         user_id=current_user.id,
-        action="TASK_UPDATE",
+        action=action,
         details=(
             f"Task {task.id} updated"
             f" | status: {old_status} -> {task.status}"
         )
     )
-
-    db.add(activity)
 
     db.commit()
     db.refresh(task)
@@ -201,6 +247,15 @@ def delete_task(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Task not found"
         )
+
+    task_title = task.title
+
+    create_activity(
+        db=db,
+        user_id=current_user.id,
+        action="TASK_DELETED",
+        details=f"Task {task.id} deleted: {task_title}"
+    )
 
     db.delete(task)
     db.commit()
