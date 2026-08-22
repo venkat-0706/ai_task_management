@@ -11,7 +11,10 @@ from app.schemas.document import DocumentSearchRequest
 from app.core.dependencies import get_current_user
 
 
-router = APIRouter(prefix="/documents", tags=["Documents"])
+router = APIRouter(
+    prefix="/documents",
+    tags=["Documents"]
+)
 
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
@@ -24,7 +27,10 @@ async def upload_document(
     db: Session = Depends(get_db)
 ):
     if not file.filename:
-        raise HTTPException(status_code=400, detail="File name is required")
+        raise HTTPException(
+            status_code=400,
+            detail="File name is required"
+        )
 
     extension = Path(file.filename).suffix.lower()
 
@@ -71,11 +77,24 @@ async def upload_document(
 
 
 @router.post("/search")
-def search_documents(request: DocumentSearchRequest):
+def search_documents(
+    request: DocumentSearchRequest,
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     results = search_similar(
         request.query,
         request.top_k
     )
+
+    activity = ActivityLog(
+        user_id=current_user.id,
+        action="DOCUMENT_SEARCH",
+        details=f"Searched documents: {request.query}"
+    )
+
+    db.add(activity)
+    db.commit()
 
     return {
         "query": request.query,

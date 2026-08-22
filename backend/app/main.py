@@ -5,6 +5,7 @@ from app.routers.user import router as user_router
 from app.routers.auth import router as auth_router
 from app.routers.ai import router as ai_router
 from app.routers.document import router as document_router
+from app.routers.analytics import router as analytics_router
 
 
 app = FastAPI(
@@ -19,6 +20,7 @@ app.include_router(auth_router)
 app.include_router(task_router)
 app.include_router(ai_router)
 app.include_router(document_router)
+app.include_router(analytics_router)
 
 
 @app.get("/")

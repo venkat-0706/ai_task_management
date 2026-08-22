@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.task import Task
 from app.models.user import User
+from app.models.activity_log import ActivityLog
 from app.schemas.task import TaskCreate, TaskUpdate, TaskResponse
 from app.core.dependencies import get_current_user
 
@@ -13,6 +14,7 @@ router = APIRouter(
     prefix="/tasks",
     tags=["Tasks"]
 )
+
 
 @router.get(
     "/",
@@ -44,7 +46,6 @@ def get_tasks(
     return tasks
 
 
-
 @router.post(
     "/",
     response_model=TaskResponse,
@@ -56,7 +57,6 @@ def create_task(
     current_user=Depends(get_current_user)
 ):
     if task_data.assigned_to is not None:
-
         assigned_user = db.query(User).filter(
             User.id == task_data.assigned_to,
             User.is_active == True
@@ -94,12 +94,13 @@ def get_task(
     current_user=Depends(get_current_user)
 ):
     task = db.query(Task).filter(
-    Task.id == task_id,
-    or_(
-        Task.created_by == current_user.id,
-        Task.assigned_to == current_user.id
-    )
-).first()
+        Task.id == task_id,
+        or_(
+            Task.created_by == current_user.id,
+            Task.assigned_to == current_user.id
+        )
+    ).first()
+
     if task is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -120,12 +121,12 @@ def update_task(
     current_user=Depends(get_current_user)
 ):
     task = db.query(Task).filter(
-    Task.id == task_id,
-    or_(
-        Task.created_by == current_user.id,
-        Task.assigned_to == current_user.id
-    )
-).first()
+        Task.id == task_id,
+        or_(
+            Task.created_by == current_user.id,
+            Task.assigned_to == current_user.id
+        )
+    ).first()
 
     if task is None:
         raise HTTPException(
@@ -133,8 +134,9 @@ def update_task(
             detail="Task not found"
         )
 
-    if task_data.assigned_to is not None:
+    old_status = task.status
 
+    if task_data.assigned_to is not None:
         assigned_user = db.query(User).filter(
             User.id == task_data.assigned_to,
             User.is_active == True
@@ -163,6 +165,17 @@ def update_task(
 
     if task_data.assigned_to is not None:
         task.assigned_to = task_data.assigned_to
+
+    activity = ActivityLog(
+        user_id=current_user.id,
+        action="TASK_UPDATE",
+        details=(
+            f"Task {task.id} updated"
+            f" | status: {old_status} -> {task.status}"
+        )
+    )
+
+    db.add(activity)
 
     db.commit()
     db.refresh(task)
