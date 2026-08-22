@@ -883,49 +883,32 @@ This verifies that authorization is enforced by the backend rather than only hid
 
 ## Login
 
-![Login Screen](assets/screenshots/login.png)
+![Login Screen](assets/login.png)
 
 ---
 
 ## Dashboard
 
-![Dashboard](assets/screenshots/dashboard.png)
+![Dashboard](assets/dashboard.png)
 
 ---
 
 ## Task Management
 
-![Task Management](assets/screenshots/tasks.png)
+![Task Management](assets/tasks.png)
 
 ---
 
 ## AI Task Generator
 
-![AI Task Generator](assets/screenshots/ai-task-generator.png)
+![AI Task Generator](assets/ai-task-generator.png)
 
 ---
 
-## Document Knowledge Search
-
-![Document Management](assets/screenshots/documents.png)
-
----
 
 ## Analytics
 
-![Analytics Dashboard](assets/screenshots/analytics.png)
-
----
-
-## Audit Logs
-
-![Audit Logs](assets/screenshots/audit-logs.png)
-
----
-
-## Swagger API Documentation
-
-![Swagger API Documentation](assets/screenshots/swagger.png)
+![Analytics Dashboard](assets/analytics.png)
 
 ---
 
