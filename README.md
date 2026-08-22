@@ -1,446 +1,670 @@
 
-# 🤖 AI Task & Knowledge Engine
+# AI Task & Knowledge Management Engine
 
-A full-stack enterprise-style task and knowledge management platform built with **FastAPI, React, MySQL, JWT-based RBAC, and FAISS semantic search**.
+<p align="center">
 
-The system combines secure task management, document ingestion, local semantic search, role-based access control, audit logging, and operational analytics in a modular architecture designed for maintainability and scalability.
+**Enterprise-style AI-powered task and knowledge management platform built with FastAPI, React, MySQL, JWT authentication, RBAC, FAISS semantic search, audit logging, and operational analytics.**
 
-[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge\&logo=python\&logoColor=white)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.1+-009688?style=for-the-badge\&logo=fastapi\&logoColor=white)](https://fastapi.tiangolo.com/)
+</p>
+
+<p align="center">
+
+[![Python](https://img.shields.io/badge/Python-3.x-3776AB?style=for-the-badge\&logo=python\&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.1x-009688?style=for-the-badge\&logo=fastapi\&logoColor=white)](https://fastapi.tiangolo.com/)
 [![React](https://img.shields.io/badge/React-18%2B-61DAFB?style=for-the-badge\&logo=react\&logoColor=black)](https://react.dev/)
-[![MySQL](https://img.shields.io/badge/MySQL-8.0%2B-4479A1?style=for-the-badge\&logo=mysql\&logoColor=white)](https://www.mysql.com/)
-[![FAISS](https://img.shields.io/badge/FAISS-Vector_Search-0467DF?style=for-the-badge)](https://github.com/facebookresearch/faiss)
-[![JWT](https://img.shields.io/badge/JWT-RBAC-000000?style=for-the-badge\&logo=jsonwebtokens\&logoColor=white)](https://jwt.io/)
+[![JavaScript](https://img.shields.io/badge/JavaScript-ES6%2B-F7DF1E?style=for-the-badge\&logo=javascript\&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![MySQL](https://img.shields.io/badge/MySQL-8.x-4479A1?style=for-the-badge\&logo=mysql\&logoColor=white)](https://www.mysql.com/)
+[![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-ORM-D71F00?style=for-the-badge\&logo=sqlalchemy\&logoColor=white)](https://www.sqlalchemy.org/)
+[![JWT](https://img.shields.io/badge/JWT-Authentication-000000?style=for-the-badge\&logo=jsonwebtokens\&logoColor=white)](https://jwt.io/)
+[![FAISS](https://img.shields.io/badge/FAISS-Vector%20Search-0467DF?style=for-the-badge)](https://github.com/facebookresearch/faiss)
+[![Axios](https://img.shields.io/badge/Axios-HTTP%20Client-5A29E4?style=for-the-badge\&logo=axios\&logoColor=white)](https://axios-http.com/)
+[![Git](https://img.shields.io/badge/Git-Version%20Control-F05032?style=for-the-badge\&logo=git\&logoColor=white)](https://git-scm.com/)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge\&logo=github\&logoColor=white)](https://github.com/)
+
+</p>
 
 ---
 
 ## 📌 Project Overview
 
-The **AI Task & Knowledge Engine** is designed to demonstrate how a modern Python full-stack application can combine traditional enterprise application development with AI-powered information retrieval.
+**AI Task & Knowledge Management Engine** is a full-stack enterprise-style application designed to centralize task management, document knowledge retrieval, AI-assisted task generation, user access control, auditability, and operational analytics.
 
-The platform provides two major capabilities:
+The system combines a **FastAPI backend** with a **React frontend** and **MySQL database**, while integrating **JWT-based authentication**, **role-based access control**, **FAISS semantic retrieval**, and **activity/audit logging**.
 
-* **Task Management** — administrators can create and assign tasks while authenticated users can track and update task status.
-* **Knowledge Retrieval** — administrators can upload PDF/TXT documents, which are processed into text chunks and converted into vector embeddings for semantic search.
-
-The application also maintains **structured audit logs and analytics**, providing administrators with visibility into user activity, task distribution, and search behavior.
+The project was designed with maintainability, modularity, API-first development, and real-world backend engineering practices in mind.
 
 ---
 
-## 🎯 Key Features
+## 🎯 Why This Project?
 
-### 🔐 Authentication & Authorization
+Modern business applications often require more than basic CRUD operations.
 
-* JWT-based stateless authentication
-* Role-Based Access Control (RBAC)
-* Separate `Admin` and `User` permissions
-* Secure password hashing using bcrypt
-* Protected FastAPI routes using dependency-based authorization
-* Token expiration and configurable authentication settings
+A production-oriented task platform needs to address:
 
-### 📋 Task Management
+* Secure authentication
+* Role-based authorization
+* Task ownership and assignment
+* Task lifecycle management
+* Document ingestion
+* Semantic document retrieval
+* AI-assisted workflows
+* Activity tracking
+* Operational analytics
+* API documentation
+* Structured database access
+* Frontend/backend separation
 
-* Create and assign tasks
-* Task filtering using multiple query parameters
-* Task status management
-* User-specific task access
-* Admin-controlled task assignment
-* Status transition workflow such as:
+This project brings these concepts together into a single application.
+
+---
+
+# ✨ Key Features
+
+## 🔐 Authentication
+
+* User login using email and password
+* Password hashing
+* JWT access-token authentication
+* Protected API routes
+* Protected React routes
+* Automatic token attachment using Axios interceptors
+* Automatic logout/redirect when the API returns `401 Unauthorized`
+* Active/inactive user validation
+
+---
+
+## 👥 Role-Based Access Control
+
+The application supports role-based authorization.
+
+### Supported roles
+
+| Role    | Access                                            |
+| ------- | ------------------------------------------------- |
+| `admin` | Administrative operations and protected resources |
+| `user`  | Standard application functionality                |
+
+RBAC is implemented at the backend level using FastAPI dependencies.
+
+Example authorization flow:
 
 ```text
-Pending → In Progress → Completed
+Request
+   ↓
+JWT Token
+   ↓
+Decode Token
+   ↓
+Identify User
+   ↓
+Check Active Status
+   ↓
+Check Role
+   ↓
+Allow / Reject Request
 ```
 
-### 🧠 Semantic Knowledge Search
+Unauthorized users receive appropriate HTTP responses rather than relying only on frontend restrictions.
 
-* Upload PDF and TXT documents
-* Extract and process document text
-* Split documents into searchable chunks
-* Generate embeddings using SentenceTransformers
-* Store vectors locally using FAISS
-* Perform semantic similarity search
-* Return relevant document content based on meaning rather than exact keyword matching
+---
 
-### 📊 Analytics & Monitoring
+# 📋 Task Management
 
-* Task distribution statistics
-* Completed vs pending task metrics
-* Search activity tracking
-* User activity monitoring
-* Administrative analytics dashboard
-* Structured audit history for important system operations
+The task management module supports the complete task lifecycle.
 
-### 📝 Audit Logging
+### Task capabilities
 
-The application records important actions such as:
+* Create tasks
+* View tasks
+* Filter tasks
+* Assign tasks
+* Set priorities
+* Set due dates
+* Update task status
+* Delete tasks
+* Track task ownership
+* Track task assignment
+
+### Task statuses
 
 ```text
-LOGIN
+Pending
+   ↓
+In Progress
+   ↓
+Completed
+```
+
+### Priority levels
+
+```text
+Low
+Medium
+High
+```
+
+---
+
+# 🤖 AI Task Generator
+
+The application includes an AI-assisted task generation workflow.
+
+Users can provide a natural-language prompt and receive a structured task preview.
+
+### Example
+
+```text
+Prompt:
+
+Create a high priority task to complete the backend API
+documentation by 29th August.
+```
+
+The system generates structured task information:
+
+```text
+Title
+Description
+Priority
+Due Date
+```
+
+The AI service is integrated with the application's semantic retrieval layer so that uploaded document knowledge can be used as contextual information.
+
+---
+
+# 📚 Document Knowledge Engine
+
+The document module allows users to upload knowledge sources and search them semantically.
+
+### Supported documents
+
+* PDF
+* TXT
+
+### Processing pipeline
+
+```text
+Upload Document
+      ↓
+Text Extraction
+      ↓
+Text Chunking
+      ↓
+Embedding Generation
+      ↓
+Vector Storage
+      ↓
+Semantic Search
+      ↓
+Relevant Context
+```
+
+This creates a lightweight Retrieval-Augmented Generation-style knowledge workflow.
+
+---
+
+# 🔎 Semantic Search
+
+The application uses a local vector retrieval workflow based on **FAISS**.
+
+Instead of relying only on exact keyword matching, the system can retrieve content based on semantic similarity.
+
+Example:
+
+```text
+User Query
+     ↓
+Query Embedding
+     ↓
+Vector Similarity Search
+     ↓
+Top-K Relevant Chunks
+     ↓
+Returned Context
+```
+
+This provides the foundation for knowledge-aware AI task generation.
+
+---
+
+# 📝 Audit & Activity Logging
+
+The system maintains activity records for important user actions.
+
+The audit log captures:
+
+* User ID
+* Action
+* Action details
+* Timestamp
+
+Example actions include:
+
+```text
 DOCUMENT_UPLOAD
+DOCUMENT_SEARCH
 TASK_CREATE
 TASK_UPDATE
-SEARCH_QUERY
+TASK_DELETE
+USER_ACTIVITY
 ```
 
-This provides traceability for critical application operations.
+### Audit architecture
+
+```text
+User Action
+     ↓
+API Endpoint
+     ↓
+Business Logic
+     ↓
+ActivityLog
+     ↓
+MySQL
+```
+
+This provides traceability and supports operational monitoring.
 
 ---
 
-# 🏗️ System Architecture
+# 📊 Analytics
 
-The application follows **Clean / Onion Architecture principles**, separating API transport, business logic, persistence, authentication, and AI-related services.
-
-```text
-                    ┌──────────────────────────┐
-                    │       React Frontend     │
-                    │                          │
-                    │ Dashboard | Tasks |      │
-                    │ Search | Authentication  │
-                    └────────────┬─────────────┘
-                                 │
-                            REST / JWT
-                                 │
-                    ┌────────────▼─────────────┐
-                    │       FastAPI API        │
-                    │                          │
-                    │ Routes | RBAC | Security │
-                    │ Middleware | Validation  │
-                    └────────────┬─────────────┘
-                                 │
-             ┌───────────────────┼───────────────────┐
-             │                   │                   │
-      ┌──────▼──────┐     ┌──────▼──────┐     ┌──────▼──────┐
-      │ Task Service │     │  Knowledge  │     │  Analytics  │
-      │              │     │   Service   │     │   Service   │
-      └──────┬──────┘     └──────┬──────┘     └──────┬──────┘
-             │                   │                   │
-      ┌──────▼──────┐     ┌──────▼──────┐     ┌──────▼──────┐
-      │   MySQL     │     │    FAISS    │     │ Audit Logs  │
-      │             │     │ Vector Index│     │              │
-      └─────────────┘     └─────────────┘     └─────────────┘
-```
-
-### Architectural Principles
-
-* Separation of concerns
-* Repository abstraction
-* Service-layer business logic
-* Dependency injection
-* Centralized authentication and authorization
-* Independent persistence and AI processing layers
-* Modular frontend components
-* Database indexing for frequently queried fields
-
----
-
-# 🧠 Semantic Search Pipeline
-
-The document retrieval pipeline follows this flow:
-
-```text
-       PDF / TXT Upload
-              │
-              ▼
-      Document Extraction
-              │
-              ▼
-       Text Preprocessing
-              │
-              ▼
-        Text Chunking
-              │
-              ▼
-   SentenceTransformer Model
-       all-MiniLM-L6-v2
-              │
-              ▼
-       Vector Embeddings
-              │
-              ▼
-        FAISS Index
-              │
-              ▼
-        Semantic Search
-              │
-              ▼
-       Relevant Results
-```
-
-### Why Semantic Search?
-
-Traditional keyword search can fail when the user's query and document content use different words with similar meanings.
-
-For example:
-
-```text
-Query:
-"How can an employee request time off?"
-
-Relevant document:
-"Employees must submit a leave application
-through the staff portal."
-```
-
-Semantic embeddings allow the system to identify the conceptual relationship between the query and the document content.
-
----
-
-# 🗄️ Database Design
-
-The application uses **MySQL** as the primary relational database.
-
-The schema is designed around normalized entities and relationships such as:
-
-```text
-Users
-  │
-  ├── Roles
-  │
-  ├── Tasks
-  │
-  └── Activity Logs
-
-Documents
-  │
-  └── Document Metadata
-```
-
-### Database Engineering
-
-* SQLAlchemy ORM
-* Foreign-key relationships
-* Normalized relational schema
-* Transaction-based database operations
-* Indexed fields for frequent queries
-* Filtering by user, status, and timestamps
-* Structured audit records
-
-Example indexed query:
-
-```text
-GET /tasks?status=completed&assigned_to=1
-```
-
----
-
-# 🔒 Security Architecture
-
-Security is implemented at multiple layers.
-
-### Authentication
-
-Users authenticate using credentials and receive a signed JWT access token.
-
-```text
-User Credentials
-       │
-       ▼
-Password Verification
-       │
-       ▼
-JWT Generation
-       │
-       ▼
-Bearer Access Token
-       │
-       ▼
-Protected API
-```
-
-### Authorization
-
-FastAPI dependencies validate the authenticated user's role before allowing access to protected operations.
-
-```text
-Admin
- ├── Create Tasks
- ├── Assign Tasks
- ├── Upload Documents
- └── View Analytics
-
-User
- ├── View Authorized Tasks
- ├── Update Task Status
- └── Perform Knowledge Search
-```
-
-Passwords are stored using secure one-way hashing rather than plaintext credentials.
-
----
-
-# 📊 Operational Analytics
-
-The administrative dashboard provides visibility into system activity.
+The analytics module provides operational information about the application.
 
 Example metrics include:
 
-| Metric          | Purpose                     |
-| --------------- | --------------------------- |
-| Total Tasks     | Overall workload            |
-| Completed Tasks | Completed work              |
-| Pending Tasks   | Outstanding work            |
-| User Activity   | User interaction monitoring |
-| Search Queries  | Knowledge retrieval usage   |
-| Document Count  | Knowledge-base size         |
+* Total users
+* Total tasks
+* Pending tasks
+* In-progress tasks
+* Completed tasks
+* Task distribution
+* System activity
 
-These metrics are calculated from application data and audit records rather than being maintained as manually updated counters.
+The analytics layer can be extended with additional business metrics as the application grows.
 
 ---
 
-# 📡 API Overview
+# 🖥️ Frontend
 
-| Method  | Endpoint             | Access        | Purpose                         |
-| ------- | -------------------- | ------------- | ------------------------------- |
-| `POST`  | `/auth/login`        | Public        | Authenticate user and issue JWT |
-| `GET`   | `/tasks`             | Authenticated | Retrieve and filter tasks       |
-| `POST`  | `/tasks`             | Admin         | Create and assign tasks         |
-| `PATCH` | `/tasks/{id}/status` | User/Admin    | Update task status              |
-| `POST`  | `/documents`         | Admin         | Upload and index documents      |
-| `POST`  | `/search`            | Authenticated | Perform semantic search         |
-| `GET`   | `/analytics`         | Admin         | Retrieve operational metrics    |
+The frontend is implemented using React.
 
-Interactive API documentation is available through FastAPI's Swagger UI:
+### Main screens
 
 ```text
-http://localhost:8000/docs
+Login
+  ↓
+Dashboard
+  ├── Tasks
+  ├── Documents
+  ├── Analytics
+  └── Audit Logs
+```
+
+### Frontend responsibilities
+
+* User authentication
+* Route protection
+* API communication
+* Task management UI
+* Document management UI
+* AI task generation
+* Analytics presentation
+* Audit log presentation
+* Loading states
+* Error handling
+* Success notifications
+
+---
+
+# 🔗 API Client
+
+Axios is configured as a centralized API client.
+
+The client automatically:
+
+1. Reads the JWT from `localStorage`
+2. Adds the token to the `Authorization` header
+3. Sets appropriate content types
+4. Handles authentication failures
+5. Redirects users to login when required
+
+Example:
+
+```text
+Frontend Request
+      ↓
+Axios Interceptor
+      ↓
+Authorization: Bearer <JWT>
+      ↓
+FastAPI
+      ↓
+Authentication Dependency
+      ↓
+Protected Endpoint
 ```
 
 ---
 
-# 🛠️ Technology Stack
+# 🏗️ Backend Architecture
 
-### Backend
+The backend follows a modular architecture separating responsibilities between:
 
-* Python 3.10+
-* FastAPI
-* Uvicorn
-* Pydantic
-* SQLAlchemy
-* PyJWT
-* Passlib / bcrypt
+```text
+Routes
+Schemas
+Models
+Services
+Core
+Database
+```
 
-### Frontend
+Conceptual architecture:
 
-* React
-* Context API
-* Axios
-* Tailwind CSS / Bootstrap
-
-### Database
-
-* MySQL 8.0+
-* SQLAlchemy ORM
-
-### AI / Search
-
-* FAISS
-* SentenceTransformers
-* `all-MiniLM-L6-v2`
-
-### Development
-
-* Git
-* GitHub
-* REST APIs
-* Swagger / OpenAPI
+```text
+                    React Frontend
+                          │
+                          ▼
+                    Axios API Client
+                          │
+                          ▼
+                    FastAPI Router
+                          │
+              ┌───────────┴───────────┐
+              ▼                       ▼
+        Authentication             Routes
+              │                       │
+              ▼                       ▼
+        JWT / RBAC              Business Logic
+                                      │
+                         ┌────────────┼────────────┐
+                         ▼            ▼            ▼
+                     Services      Models       Logging
+                         │            │            │
+                         ▼            ▼            ▼
+                     FAISS         MySQL      Activity Logs
+```
 
 ---
 
-# 📂 Project Structure
+# 📁 Project Structure
 
 ```text
-AI-Task-Knowledge-System/
+AI-Task-Management-Engine/
 │
 ├── backend/
+│   │
 │   ├── app/
-│   │   ├── api/
-│   │   │   └── routes/
 │   │   ├── core/
-│   │   │   ├── security/
-│   │   │   └── config/
-│   │   ├── db/
+│   │   │   ├── dependencies.py
+│   │   │   └── security.py
+│   │   │
 │   │   ├── models/
+│   │   │   ├── user.py
+│   │   │   ├── task.py
+│   │   │   └── activity_log.py
+│   │   │
 │   │   ├── schemas/
-│   │   ├── repositories/
-│   │   └── services/
+│   │   │   ├── user.py
+│   │   │   ├── task.py
+│   │   │   ├── ai.py
+│   │   │   └── document.py
+│   │   │
+│   │   ├── routes/
+│   │   │   ├── auth.py
+│   │   │   ├── users.py
+│   │   │   ├── tasks.py
+│   │   │   ├── documents.py
+│   │   │   ├── ai.py
+│   │   │   ├── analytics.py
+│   │   │   └── audit_logs.py
+│   │   │
+│   │   ├── services/
+│   │   │   ├── ai_service.py
+│   │   │   ├── document_service.py
+│   │   │   └── vector_service.py
+│   │   │
+│   │   ├── database.py
+│   │   └── main.py
 │   │
 │   ├── uploads/
-│   ├── vector_store/
-│   ├── main.py
-│   ├── seed.py
-│   └── requirements.txt
+│   ├── requirements.txt
+│   └── .env
 │
 ├── frontend/
+│   │
 │   ├── src/
-│   │   ├── components/
-│   │   ├── context/
 │   │   ├── pages/
+│   │   │   ├── Login.jsx
+│   │   │   ├── Dashboard.jsx
+│   │   │   ├── Tasks.jsx
+│   │   │   ├── Documents.jsx
+│   │   │   ├── Analytics.jsx
+│   │   │   └── AuditLogs.jsx
+│   │   │
 │   │   ├── services/
-│   │   └── App.js
+│   │   │   └── api.js
+│   │   │
+│   │   ├── App.jsx
+│   │   └── main.jsx
 │   │
 │   ├── package.json
-│   └── .env.example
+│   └── .env
 │
-├── docs/
-│   └── screenshots/
-│       ├── dashboard.png
-│       ├── search.png
-│       ├── tasks.png
-│       └── logs.png
+├── assets/
+│   ├── screenshots/
+│   │   ├── login.png
+│   │   ├── dashboard.png
+│   │   ├── tasks.png
+│   │   ├── ai-task-generator.png
+│   │   ├── documents.png
+│   │   ├── analytics.png
+│   │   ├── audit-logs.png
+│   │   └── swagger.png
+│   │
+│   └── demo/
+│       └── ai-task-manager-demo.mp4
 │
 ├── README.md
 └── .gitignore
 ```
 
-> Update the structure above if your actual repository differs.
+---
+
+# 🗄️ Database Design
+
+The application uses MySQL as its relational database.
+
+### Core entities
+
+```text
+Users
+  │
+  ├───────────────┐
+  │               │
+  ▼               ▼
+Created Tasks   Assigned Tasks
+  │
+  ▼
+Activity Logs
+```
+
+### User entity
+
+Important fields include:
+
+```text
+id
+name
+email
+password_hash
+role
+is_active
+created_at
+```
+
+### Task entity
+
+The task model tracks:
+
+```text
+id
+title
+description
+priority
+status
+due_date
+created_by
+assigned_to
+created_at
+updated_at
+```
+
+### Activity Log entity
+
+```text
+id
+user_id
+action
+details
+created_at
+```
 
 ---
 
-# 🚀 Getting Started
+# 🔒 Security
 
-## Prerequisites
+Security considerations implemented in the application include:
 
-Make sure the following are installed:
+* Password hashing
+* JWT authentication
+* Protected routes
+* Backend authorization
+* Role-based access control
+* Active user validation
+* Token validation
+* Unauthorized request handling
+* Separation of authentication and authorization logic
+* Environment-based configuration
 
-* Python 3.10+
-* Node.js 18+
-* npm
-* MySQL 8.0+
-* Git
+Secrets and database credentials should be stored in environment variables rather than committed to Git.
 
 ---
+
+# 📡 API Endpoints
+
+## Authentication
+
+```http
+POST /auth/login
+```
+
+Authenticates a user and returns a JWT access token.
+
+---
+
+## Users
+
+```http
+POST /users/
+GET /users/admin-test
+```
+
+The administrative endpoint demonstrates role-based authorization.
+
+---
+
+## Tasks
+
+```http
+GET    /tasks/
+POST   /tasks/
+PUT    /tasks/{task_id}
+DELETE /tasks/{task_id}
+```
+
+---
+
+## Documents
+
+```http
+POST /documents/upload
+POST /documents/search
+```
+
+---
+
+## AI
+
+```http
+POST /ai/generate-task
+```
+
+Example request:
+
+```json
+{
+  "prompt": "Create a high priority task to complete backend API documentation by 29th August."
+}
+```
+
+Example response:
+
+```json
+{
+  "title": "Create a high priority task to complete backend API documentation by 29th August",
+  "description": "Task generated from AI prompt",
+  "priority": "medium",
+  "due_date": null
+}
+```
+
+---
+
+## API Documentation
+
+FastAPI automatically provides interactive API documentation.
+
+Once the backend is running:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+The Swagger UI can be used to test protected and unprotected API endpoints.
+
+---
+
+# ⚙️ Installation & Setup
 
 ## 1. Clone the Repository
 
 ```bash
-git clone https://github.com/venkat-0706/AI-Task-Knowledge-System.git
-
-cd AI-Task-Knowledge-System
+git clone <YOUR_GITHUB_REPOSITORY_URL>
+cd <YOUR_PROJECT_DIRECTORY>
 ```
 
 ---
 
-## 2. Configure MySQL
+# 🐍 Backend Setup
 
-Create the application database:
-
-```sql
-CREATE DATABASE task_knowledge_db
-CHARACTER SET utf8mb4
-COLLATE utf8mb4_unicode_ci;
-```
-
----
-
-## 3. Configure the Backend
+Navigate to the backend directory:
 
 ```bash
 cd backend
+```
 
+Create a virtual environment:
+
+### Windows
+
+```bash
 python -m venv venv
 ```
 
-### Windows
+Activate it:
 
 ```bash
 venv\Scripts\activate
@@ -449,6 +673,7 @@ venv\Scripts\activate
 ### Linux / macOS
 
 ```bash
+python3 -m venv venv
 source venv/bin/activate
 ```
 
@@ -460,63 +685,69 @@ pip install -r requirements.txt
 
 ---
 
-## 4. Configure Environment Variables
+# 🗄️ Database Configuration
 
-Create:
+Create a MySQL database.
 
-```text
-backend/.env
+Example:
+
+```sql
+CREATE DATABASE ai_task_manager;
 ```
+
+Configure the database connection in the backend environment configuration.
 
 Example:
 
 ```env
-DATABASE_URL=mysql+pymysql://<username>:<password>@localhost:3306/task_knowledge_db
+DATABASE_URL=mysql+pymysql://username:password@localhost:3306/ai_task_manager
+```
 
-SECRET_KEY=<generate-a-secure-secret-key>
+---
+
+# 🔐 Environment Variables
+
+Example backend `.env`:
+
+```env
+DATABASE_URL=mysql+pymysql://username:password@localhost:3306/ai_task_manager
+
+SECRET_KEY=your-secret-key
 
 ALGORITHM=HS256
 
-ACCESS_TOKEN_EXPIRE_MINUTES=120
+ACCESS_TOKEN_EXPIRE_MINUTES=60
 ```
 
-> **Security:** Never commit real credentials, database passwords, JWT secrets, API keys, or `.env` files to GitHub.
+Do not commit `.env` to GitHub.
 
 ---
 
-## 5. Initialize Application Data
+# ▶️ Run Backend
 
-If the project includes the provided seed script:
-
-```bash
-python seed.py
-```
-
----
-
-## 6. Start the FastAPI Backend
+From the backend directory:
 
 ```bash
-uvicorn main:app --reload --port 8000
+uvicorn app.main:app --reload
 ```
 
 Backend:
 
 ```text
-http://localhost:8000
+http://127.0.0.1:8000
 ```
 
-Swagger API documentation:
+Swagger:
 
 ```text
-http://localhost:8000/docs
+http://127.0.0.1:8000/docs
 ```
 
 ---
 
-## 7. Start the React Frontend
+# ⚛️ Frontend Setup
 
-Open another terminal:
+Open another terminal.
 
 ```bash
 cd frontend
@@ -528,196 +759,499 @@ Install dependencies:
 npm install
 ```
 
-Create:
-
-```text
-frontend/.env
-```
-
-Add:
-
-```env
-REACT_APP_API_BASE_URL=http://localhost:8000
-```
-
-Start the application:
+Start the development server:
 
 ```bash
-npm start
+npm run dev
 ```
 
-Frontend:
-
-```text
-http://localhost:3000
-```
-
----
-
-# 📸 Application Screenshots
-
-Add screenshots of the actual running application under:
-
-```text
-docs/screenshots/
-```
-
-Recommended screenshots:
-
-| Screen          | File            |
-| --------------- | --------------- |
-| Dashboard       | `dashboard.png` |
-| Semantic Search | `search.png`    |
-| Task Management | `tasks.png`     |
-| Audit Logs      | `logs.png`      |
-
-### Dashboard
-
-![Dashboard Screenshot](docs/screenshots/dashboard.png)
-
-### Semantic Search
-
-![Semantic Search Screenshot](docs/screenshots/search.png)
-
-### Task Management
-
-![Task Management Screenshot](docs/screenshots/tasks.png)
-
-### Audit Logs
-
-![Audit Logs Screenshot](docs/screenshots/logs.png)
-
----
-
-# 🧪 Testing
-
-Run backend tests using the project's configured test framework.
-
-Example:
-
-```bash
-pytest
-```
-
-For API testing, the interactive Swagger documentation can be used:
-
-```text
-http://localhost:8000/docs
-```
-
-Recommended validation areas:
-
-* Authentication
-* RBAC permissions
-* Task CRUD operations
-* Task filtering
-* Document ingestion
-* Semantic search
-* Audit logging
-* Analytics endpoints
+The frontend will normally be available through the URL displayed by Vite.
 
 ---
 
 # 🔄 Application Workflow
 
 ```text
-                ┌─────────────┐
-                │    Login    │
-                └──────┬──────┘
-                       │
-                       ▼
-                ┌─────────────┐
-                │ JWT Token   │
-                └──────┬──────┘
-                       │
-                       ▼
-              ┌─────────────────┐
-              │ Role Validation │
-              └────────┬────────┘
-                       │
-          ┌────────────┴────────────┐
-          │                         │
-          ▼                         ▼
-      Admin User               Regular User
-          │                         │
-          ▼                         ▼
-   Tasks / Documents         Tasks / Search
-          │                         │
-          └────────────┬────────────┘
-                       ▼
-                Activity Logging
-                       │
-                       ▼
-                 Analytics
+                 ┌─────────────────┐
+                 │      Login      │
+                 └────────┬────────┘
+                          │
+                          ▼
+                 ┌─────────────────┐
+                 │   JWT Token     │
+                 └────────┬────────┘
+                          │
+                          ▼
+                 ┌─────────────────┐
+                 │    Dashboard    │
+                 └────────┬────────┘
+                          │
+          ┌───────────────┼────────────────┐
+          │               │                │
+          ▼               ▼                ▼
+       Tasks         Documents         Analytics
+          │               │
+          │               ▼
+          │         Semantic Search
+          │               │
+          │               ▼
+          │        Knowledge Context
+          │               │
+          └───────► AI Task Generator
+                          │
+                          ▼
+                    Generated Task
+                          │
+                          ▼
+                    Activity Log
 ```
 
 ---
 
-# 💡 Engineering Highlights
+# 🧪 Testing Strategy
 
-This project demonstrates practical implementation of several backend and full-stack engineering concepts:
+The application can be tested at multiple levels.
 
-* RESTful API development with FastAPI
-* Stateless JWT authentication
-* Role-Based Access Control
+## Backend API Testing
+
+Use Swagger UI:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+or an API client such as Postman.
+
+Recommended test sequence:
+
+```text
+1. Create / configure users
+2. Login
+3. Copy JWT token
+4. Authorize protected endpoints
+5. Create task
+6. Retrieve tasks
+7. Update task
+8. Delete task
+9. Upload document
+10. Search document
+11. Generate AI task
+12. Test admin endpoint
+13. Verify audit logs
+14. Verify analytics
+```
+
+---
+
+# 🔐 RBAC Testing
+
+### Admin
+
+Expected:
+
+```text
+HTTP 200
+```
+
+Example:
+
+```json
+{
+  "message": "RBAC is working",
+  "user": "admin@example.com",
+  "role": "admin"
+}
+```
+
+### Normal User
+
+Expected behavior:
+
+```text
+HTTP 403 Forbidden
+```
+
+for endpoints restricted to administrators.
+
+This verifies that authorization is enforced by the backend rather than only hidden in the frontend.
+
+---
+
+# 📸 Application Screenshots
+
+> Screenshots will be stored inside `assets/screenshots/`.
+
+## Login
+
+![Login Screen](assets/screenshots/login.png)
+
+---
+
+## Dashboard
+
+![Dashboard](assets/screenshots/dashboard.png)
+
+---
+
+## Task Management
+
+![Task Management](assets/screenshots/tasks.png)
+
+---
+
+## AI Task Generator
+
+![AI Task Generator](assets/screenshots/ai-task-generator.png)
+
+---
+
+## Document Knowledge Search
+
+![Document Management](assets/screenshots/documents.png)
+
+---
+
+## Analytics
+
+![Analytics Dashboard](assets/screenshots/analytics.png)
+
+---
+
+## Audit Logs
+
+![Audit Logs](assets/screenshots/audit-logs.png)
+
+---
+
+## Swagger API Documentation
+
+![Swagger API Documentation](assets/screenshots/swagger.png)
+
+---
+
+# 🎥 Project Demo
+
+A short end-to-end demonstration of the application is included below.
+
+### Demo flow
+
+```text
+Login
+  ↓
+Dashboard
+  ↓
+Create Task
+  ↓
+Update Task
+  ↓
+Upload Document
+  ↓
+Semantic Search
+  ↓
+Generate AI Task
+  ↓
+View Analytics
+  ↓
+View Audit Logs
+```
+
+### Demo Video
+
+**[▶️ Watch the Full Project Demo](assets/demo/ai-task-manager-demo.mp4)**
+
+> If GitHub does not render the video directly in the README, the repository can additionally contain a GIF preview or a GitHub-hosted video/release link.
+
+---
+
+# 🧠 Engineering Highlights
+
+This project demonstrates practical full-stack engineering concepts rather than only basic CRUD functionality.
+
+### Backend
+
+* FastAPI
+* REST API architecture
+* SQLAlchemy ORM
+* Pydantic schemas
 * Dependency injection
-* SQLAlchemy repository and service abstractions
-* Relational database design
-* Database indexing
-* Document processing pipelines
-* Vector embeddings
-* FAISS-based semantic retrieval
-* React state management
-* Axios API integration
-* Audit logging
-* Aggregation-based analytics
-* Environment-based configuration
-* Modular application architecture
+* JWT authentication
+* RBAC
+* Service-layer separation
+* Database relationships
+* Exception handling
+* Activity logging
+
+### Frontend
+
+* React
+* React Router
+* Component-based architecture
+* Axios
+* Protected routes
+* State management with React hooks
+* API integration
+* Form handling
+* Loading/error states
+* Responsive UI
+
+### AI / Knowledge Retrieval
+
+* Document processing
+* Text extraction
+* Text chunking
+* Embedding generation
+* Vector similarity search
+* FAISS
+* Context-aware task generation
+
+### Database
+
+* MySQL
+* SQLAlchemy
+* Foreign-key relationships
+* User/task relationships
+* Audit trail persistence
 
 ---
 
-# 🔮 Future Improvements
+# 🧩 Design Principles
 
-Potential extensions include:
+The project emphasizes:
 
-* Redis-based caching
-* Background document processing with Celery
-* PostgreSQL support
-* Docker and Docker Compose deployment
-* CI/CD with GitHub Actions
-* Automated API and integration testing
-* Cloud object storage for uploaded documents
-* Hybrid keyword + semantic search
-* RAG-based answer generation
-* Observability using structured logging and metrics
-* Production deployment with Nginx and HTTPS
+### Separation of Concerns
 
----
+Routes, schemas, services, models, security, and database logic are separated.
 
-# 👨‍💻 Author
+### Reusable Services
 
-## Venkata Chandu
+Business functionality is extracted into service modules rather than placing everything inside route handlers.
 
-**Python Full-Stack Developer | Backend & AI Application Development**
+### API-First Architecture
 
-I enjoy building practical software systems that combine **Python backend engineering, REST APIs, databases, modern frontend development, and AI-powered functionality**.
+The React frontend communicates with the backend through REST APIs.
 
-### Connect With Me
+### Secure Authorization
 
-* 💼 **LinkedIn:** [linkedin.com/in/chandu0706](https://linkedin.com/in/chandu0706)
-* 💻 **GitHub:** [github.com/venkat-0706](https://github.com/venkat-0706)
-* 📧 **Email:** [chanduabbireddy247@gmail.com](mailto:chanduabbireddy247@gmail.com)
+Authorization decisions are performed by the backend.
 
----
+### Auditability
 
-## ⭐ If You Find This Project Interesting
+Important user activities can be recorded for traceability.
 
-Feel free to explore the repository, review the architecture, and experiment with the API and semantic search pipeline.
+### Extensibility
 
-If you find the project useful, consider giving the repository a ⭐.
+The architecture allows future integrations such as:
+
+* External LLM APIs
+* Background task queues
+* Redis caching
+* Kafka event streaming
+* Cloud object storage
+* Production monitoring
+* CI/CD pipelines
 
 ---
 
-### 📌 Repository Summary
+# 🚀 Future Enhancements
 
-**AI Task & Knowledge Engine** is a full-stack application demonstrating how **FastAPI, React, MySQL, JWT/RBAC, document processing, vector embeddings, and FAISS semantic search** can be combined into a modular enterprise-style platform for task management and knowledge retrieval.
+Potential production-level improvements include:
+
+* Refresh-token authentication
+* Password reset workflow
+* Email verification
+* Advanced admin dashboard
+* Fine-grained permissions
+* User management UI
+* Pagination for large datasets
+* Advanced task filtering
+* Task comments
+* Task attachments
+* Real-time notifications
+* WebSocket support
+* Redis caching
+* Celery/background workers
+* Kafka event streaming
+* Cloud document storage
+* Production LLM integration
+* Automated testing
+* Docker containerization
+* CI/CD pipeline
+* Cloud deployment
+* Centralized logging
+* Application monitoring
+
+---
+
+# 📈 Scalability Considerations
+
+The current architecture provides a foundation that can be extended for larger workloads.
+
+A future production architecture could evolve into:
+
+```text
+                   Load Balancer
+                         │
+              ┌──────────┴──────────┐
+              ▼                     ▼
+         FastAPI API 1         FastAPI API 2
+              │                     │
+              └──────────┬──────────┘
+                         │
+                    Redis Cache
+                         │
+              ┌──────────┴──────────┐
+              ▼                     ▼
+           MySQL                 FAISS
+              │                     │
+              └──────────┬──────────┘
+                         ▼
+                 Background Workers
+                         │
+                         ▼
+                  AI / Document Jobs
+```
+
+---
+
+# 📊 Project Capabilities Summary
+
+| Capability                | Implemented |
+| ------------------------- | :---------: |
+| JWT Authentication        |      ✅      |
+| Protected Routes          |      ✅      |
+| Role-Based Access Control |      ✅      |
+| User Management           |      ✅      |
+| Task CRUD                 |      ✅      |
+| Task Assignment           |      ✅      |
+| Task Priority             |      ✅      |
+| Task Status Workflow      |      ✅      |
+| Due Dates                 |      ✅      |
+| Document Upload           |      ✅      |
+| Text Extraction           |      ✅      |
+| Text Chunking             |      ✅      |
+| Vector Search             |      ✅      |
+| FAISS Retrieval           |      ✅      |
+| AI Task Generation        |      ✅      |
+| Audit Logging             |      ✅      |
+| Analytics                 |      ✅      |
+| Swagger Documentation     |      ✅      |
+| React Frontend            |      ✅      |
+| FastAPI Backend           |      ✅      |
+| MySQL Database            |      ✅      |
+
+---
+
+# 🛠️ Technology Stack
+
+| Layer               | Technology         |
+| ------------------- | ------------------ |
+| Frontend            | React              |
+| Frontend Language   | JavaScript         |
+| API Client          | Axios              |
+| Routing             | React Router       |
+| Backend             | FastAPI            |
+| Backend Language    | Python             |
+| ORM                 | SQLAlchemy         |
+| Validation          | Pydantic           |
+| Authentication      | JWT                |
+| Authorization       | RBAC               |
+| Database            | MySQL              |
+| Vector Search       | FAISS              |
+| Document Processing | PDF/TXT processing |
+| API Documentation   | Swagger / OpenAPI  |
+| Version Control     | Git                |
+| Repository          | GitHub             |
+
+---
+
+# 👨‍💻 Developer
+
+**Chandu Cruels**
+
+Computer Science Engineering Graduate
+Python Full Stack Developer | Software Engineer
+
+### Technical Focus
+
+```text
+Python
+FastAPI
+Django
+React
+JavaScript
+SQL
+MySQL
+PostgreSQL
+REST APIs
+JWT
+RBAC
+AI / ML
+Vector Search
+Git
+GitHub
+```
+
+---
+
+# ⭐ Why This Project Matters
+
+This project demonstrates the ability to build a complete application across multiple engineering layers:
+
+```text
+Frontend
+    ↓
+REST API
+    ↓
+Authentication
+    ↓
+Authorization
+    ↓
+Business Logic
+    ↓
+Database
+    ↓
+AI / Vector Retrieval
+    ↓
+Auditability
+    ↓
+Analytics
+```
+
+Rather than implementing an isolated feature, the project combines **authentication, authorization, CRUD workflows, database relationships, document intelligence, semantic retrieval, AI-assisted task generation, auditability, and analytics** into a single full-stack system.
+
+---
+
+# 📄 License
+
+This project is intended for educational, portfolio, and demonstration purposes.
+
+---
+
+<p align="center">
+
+**Built with Python, FastAPI, React, MySQL and AI**
+
+⭐ If you found this project interesting, consider giving the repository a star.
+
+</p>
+
+### One change I strongly recommend
+
+Because we haven't actually run the complete end-to-end test yet, **don't claim things like "100% tested", "production-ready", performance numbers, or coverage percentages** in the README. That can hurt credibility if a recruiter checks the repository.
+
+Tomorrow, after we test it, we can replace the testing section with **actual Postman/Swagger results and screenshots**.
+
+Also, your current README can use repository-relative image paths, which GitHub supports, so once you add the screenshots under `assets/screenshots/`, they will render automatically. ([GitHub Docs][2])
+
+**For tonight, your next steps are simply:**
+
+1. Create `README.md` in the project root.
+2. Paste the README above.
+3. Create the `assets/screenshots` and `assets/demo` folders.
+4. Add `.env` and other secrets to `.gitignore`.
+5. Push the project to GitHub.
+6. **Don't worry about screenshots/video tonight.**
+7. Tomorrow we'll test the application systematically and then add the actual result screenshots + demo video.
+
+[1]: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-readmes?utm_source=chatgpt.com "About the repository README file - GitHub Docs"
+[2]: https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax?source=post_page---------------------------&utm_source=chatgpt.com "Basic writing and formatting syntax - GitHub Docs"
