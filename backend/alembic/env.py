@@ -6,7 +6,7 @@ from sqlalchemy import pool
 from alembic import context
 
 from app.database import Base, settings
-from app.models import User, Task
+from app.models import User, Task, ActivityLog
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
