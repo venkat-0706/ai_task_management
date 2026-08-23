@@ -1212,9 +1212,4 @@ This project is intended for educational, portfolio, and demonstration purposes.
 
 <p align="center">
 
-**Built with Python, FastAPI, React, MySQL and AI**
 
-⭐ If you found this project interesting, consider giving the repository a star.
-
-</p>
----&utm_source=chatgpt.com "Basic writing and formatting syntax - GitHub Docs"
