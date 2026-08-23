@@ -940,7 +940,7 @@ View Audit Logs
 
 ### Demo Video
 
-**[▶️ Watch the Full Project Demo](assets/demo/ai-task-manager-demo.mp4)**
+**[▶️ Watch the Full Project Demo](https://drive.google.com/file/d/1ofdJpzC4_vKuh7Wfc9XPOvGWc6Z-rjEv/view?usp=sharing)**
 
 > If GitHub does not render the video directly in the README, the repository can additionally contain a GIF preview or a GitHub-hosted video/release link.
 
