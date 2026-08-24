@@ -7,39 +7,98 @@ model = SentenceTransformer("all-MiniLM-L6-v2")
 
 index = None
 stored_chunks = []
+stored_metadata = []
 
 
-def create_embeddings(chunks: list[str]):
-    global index, stored_chunks
+def create_embeddings(
+    chunks: list[str],
+    metadata: list[dict] | None = None
+):
+    global index
+    global stored_chunks
+    global stored_metadata
 
-    embeddings = model.encode(chunks)
+    if not chunks:
+        return
 
-    embeddings = np.array(embeddings).astype("float32")
+    if metadata is None:
+        metadata = [{} for _ in chunks]
+
+    embeddings = model.encode(
+        chunks,
+        convert_to_numpy=True,
+        normalize_embeddings=True
+    )
+
+    embeddings = embeddings.astype("float32")
 
     dimension = embeddings.shape[1]
 
-    index = faiss.IndexFlatL2(dimension)
+    if index is None:
+        index = faiss.IndexFlatIP(dimension)
+
     index.add(embeddings)
 
-    stored_chunks = chunks
+    stored_chunks.extend(chunks)
+
+    stored_metadata.extend(metadata)
 
 
-def search_similar(query: str, top_k: int = 3):
+def search_similar(
+    query: str,
+    top_k: int = 10
+):
     if index is None or not stored_chunks:
         return []
 
-    query_embedding = model.encode([query])
-    query_embedding = np.array(query_embedding).astype("float32")
+    query_embedding = model.encode(
+        [query],
+        convert_to_numpy=True,
+        normalize_embeddings=True
+    )
 
-    distances, indices = index.search(query_embedding, top_k)
+    query_embedding = query_embedding.astype("float32")
+
+    actual_top_k = min(
+        top_k,
+        len(stored_chunks)
+    )
+
+    scores, indices = index.search(
+        query_embedding,
+        actual_top_k
+    )
 
     results = []
 
-    for distance, index_value in zip(distances[0], indices[0]):
-        if index_value < len(stored_chunks):
-            results.append({
+    for score, index_value in zip(
+        scores[0],
+        indices[0]
+    ):
+        if index_value == -1:
+            continue
+
+        if index_value >= len(stored_chunks):
+            continue
+
+        metadata = stored_metadata[index_value]
+
+        results.append(
+            {
                 "content": stored_chunks[index_value],
-                "score": float(distance)
-            })
+                "score": float(score),
+                "filename": metadata.get(
+                    "filename",
+                    "Unknown Document"
+                )
+            }
+        )
 
     return results
+
+
+def get_vector_count():
+    if index is None:
+        return 0
+
+    return index.ntotal

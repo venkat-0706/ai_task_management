@@ -1,7 +1,17 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+    ClipboardList,
+    Check,
+    Clock3,
+    Hourglass,
+    Search,
+    ArrowLeft,
+} from "lucide-react";
+
 import api from "../services/api";
 import "./Analytics.css";
+
 
 function Analytics() {
     const navigate = useNavigate();
@@ -9,6 +19,11 @@ function Analytics() {
     const [analytics, setAnalytics] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+
+    useEffect(() => {
+        fetchAnalytics();
+    }, []);
+
 
     const fetchAnalytics = async () => {
         try {
@@ -18,44 +33,78 @@ function Analytics() {
             const response = await api.get("/analytics/");
 
             setAnalytics(response.data);
-        } catch (err) {
-            console.error(err);
-
-            if (err.response?.status === 401) {
-                localStorage.removeItem("access_token");
-                localStorage.removeItem("user");
-
-                navigate("/login");
-                return;
-            }
+        } catch (error) {
+            console.error("Analytics Error:", error);
 
             setError(
-                err.response?.data?.detail ||
-                "Unable to load analytics."
+                error.response?.data?.detail ||
+                "Failed to load analytics data."
             );
         } finally {
             setLoading(false);
         }
     };
 
-    useEffect(() => {
-        fetchAnalytics();
-    }, []);
 
     if (loading) {
         return (
+            <div className="analytics-loading">
+                Loading analytics...
+            </div>
+        );
+    }
+
+
+    if (!analytics) {
+        return (
             <div className="analytics-page">
-                <div className="analytics-loading">
-                    Loading analytics...
+                <div className="analytics-error">
+                    <strong>Unable to load analytics</strong>
+                    <span>{error}</span>
+
+                    <button
+                        className="retry-button"
+                        onClick={fetchAnalytics}
+                    >
+                        Try Again
+                    </button>
                 </div>
             </div>
         );
     }
 
+
+    const totalTasks = analytics.total_tasks || 0;
+    const completedTasks = analytics.completed_tasks || 0;
+    const inProgressTasks = analytics.in_progress_tasks || 0;
+    const pendingTasks = analytics.pending_tasks || 0;
+
+    const searches = analytics.most_searched_queries || [];
+
+
+    const getPercentage = (value) => {
+        if (totalTasks === 0) return 0;
+
+        return Math.round((value / totalTasks) * 100);
+    };
+
+
+    const completionRate = getPercentage(completedTasks);
+    const inProgressRate = getPercentage(inProgressTasks);
+    const pendingRate = getPercentage(pendingTasks);
+
+    const totalSearchActivity = searches.reduce(
+        (total, item) => total + item.count,
+        0
+    );
+
+
     return (
         <div className="analytics-page">
 
-            <header className="analytics-header">
+            {/* HEADER */}
+
+            <div className="analytics-header">
 
                 <div>
                     <span className="analytics-label">
@@ -73,10 +122,14 @@ function Analytics() {
                     className="dashboard-button"
                     onClick={() => navigate("/dashboard")}
                 >
-                    ← Dashboard
+                    <ArrowLeft size={17} />
+                    Dashboard
                 </button>
 
-            </header>
+            </div>
+
+
+            {/* ERROR */}
 
             {error && (
                 <div className="analytics-error">
@@ -85,315 +138,440 @@ function Analytics() {
                 </div>
             )}
 
-            {analytics && !error && (
-                <>
-                    <section className="analytics-cards">
 
-                        <div className="analytics-card">
+            {/* TOP CARDS */}
 
-                            <div className="analytics-card-icon">
-                                📋
-                            </div>
+            <div className="analytics-cards">
 
-                            <div>
-                                <span>Total Tasks</span>
+                {/* TOTAL TASKS */}
+
+                <div className="analytics-card">
+
+                    <div className="analytics-card-icon">
+                        <ClipboardList size={24} />
+                    </div>
+
+                    <div>
+                        <span>Total Tasks</span>
+
+                        <strong>
+                            {totalTasks}
+                        </strong>
+                    </div>
+
+                </div>
+
+
+                {/* COMPLETED */}
+
+                <div className="analytics-card">
+
+                    <div className="analytics-card-icon completed">
+                        <Check size={24} />
+                    </div>
+
+                    <div>
+                        <span>Completed Tasks</span>
+
+                        <strong>
+                            {completedTasks}
+                        </strong>
+                    </div>
+
+                </div>
+
+
+                {/* IN PROGRESS */}
+
+                <div className="analytics-card">
+
+                    <div className="analytics-card-icon progress">
+                        <Clock3 size={24} />
+                    </div>
+
+                    <div>
+                        <span>In Progress Tasks</span>
+
+                        <strong>
+                            {inProgressTasks}
+                        </strong>
+                    </div>
+
+                </div>
+
+
+                {/* PENDING */}
+
+                <div className="analytics-card">
+
+                    <div className="analytics-card-icon pending">
+                        <Hourglass size={24} />
+                    </div>
+
+                    <div>
+                        <span>Pending Tasks</span>
+
+                        <strong>
+                            {pendingTasks}
+                        </strong>
+                    </div>
+
+                </div>
+
+
+                {/* SEARCH QUERIES */}
+
+                <div className="analytics-card search-card">
+
+                    <div className="analytics-card-icon search">
+                        <Search size={24} />
+                    </div>
+
+                    <div>
+                        <span>Search Queries</span>
+
+                        <strong>
+                            {searches.length}
+                        </strong>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            {/* MAIN CONTENT */}
+
+            <div className="analytics-content">
+
+
+                {/* TASK STATISTICS */}
+
+                <div className="analytics-panel">
+
+                    <div className="panel-header">
+
+                        <div>
+                            <span className="panel-label">
+                                TASK OVERVIEW
+                            </span>
+
+                            <h2>
+                                Task Statistics
+                            </h2>
+                        </div>
+
+                    </div>
+
+
+                    <div className="task-statistics">
+
+
+                        {/* TOTAL */}
+
+                        <div className="stat-block">
+
+                            <div className="stat-row">
+
+                                <div className="stat-title">
+
+                                    <span className="stat-dot"></span>
+
+                                    Total Tasks
+
+                                </div>
+
                                 <strong>
-                                    {analytics.total_tasks}
+                                    {totalTasks}
                                 </strong>
+
+                            </div>
+
+                            <div className="progress-track">
+
+                                <div
+                                    className="progress-fill total-fill"
+                                    style={{
+                                        width: totalTasks > 0
+                                            ? "100%"
+                                            : "0%"
+                                    }}
+                                />
+
                             </div>
 
                         </div>
 
-                        <div className="analytics-card">
 
-                            <div className="analytics-card-icon completed">
-                                ✓
-                            </div>
+                        {/* COMPLETED */}
 
-                            <div>
-                                <span>Completed Tasks</span>
+                        <div className="stat-block">
+
+                            <div className="stat-row">
+
+                                <div className="stat-title">
+
+                                    <span className="stat-dot completed"></span>
+
+                                    Completed
+
+                                </div>
+
                                 <strong>
-                                    {analytics.completed_tasks}
+                                    {completedTasks}
                                 </strong>
+
+                            </div>
+
+                            <div className="progress-track">
+
+                                <div
+                                    className="progress-fill completed-fill"
+                                    style={{
+                                        width: `${completionRate}%`
+                                    }}
+                                />
+
                             </div>
 
                         </div>
 
-                        <div className="analytics-card">
 
-                            <div className="analytics-card-icon pending">
-                                ⏳
-                            </div>
+                        {/* IN PROGRESS */}
 
-                            <div>
-                                <span>Pending Tasks</span>
+                        <div className="stat-block">
+
+                            <div className="stat-row">
+
+                                <div className="stat-title">
+
+                                    <span className="stat-dot progress"></span>
+
+                                    In Progress
+
+                                </div>
+
                                 <strong>
-                                    {analytics.pending_tasks}
+                                    {inProgressTasks}
                                 </strong>
+
+                            </div>
+
+                            <div className="progress-track">
+
+                                <div
+                                    className="progress-fill progress-fill-color"
+                                    style={{
+                                        width: `${inProgressRate}%`
+                                    }}
+                                />
+
                             </div>
 
                         </div>
 
-                        <div className="analytics-card">
 
-                            <div className="analytics-card-icon search">
-                                🔍
-                            </div>
+                        {/* PENDING */}
 
-                            <div>
-                                <span>Search Queries</span>
+                        <div className="stat-block">
+
+                            <div className="stat-row">
+
+                                <div className="stat-title">
+
+                                    <span className="stat-dot pending"></span>
+
+                                    Pending
+
+                                </div>
+
                                 <strong>
-                                    {analytics.most_searched_queries?.length || 0}
+                                    {pendingTasks}
                                 </strong>
-                            </div>
-
-                        </div>
-
-                    </section>
-
-                    <section className="analytics-content">
-
-                        <div className="analytics-panel">
-
-                            <div className="panel-header">
-
-                                <div>
-                                    <span className="panel-label">
-                                        TASK OVERVIEW
-                                    </span>
-
-                                    <h2>Task Statistics</h2>
-                                </div>
 
                             </div>
 
-                            <div className="task-statistics">
+                            <div className="progress-track">
 
-                                <div className="stat-row">
-
-                                    <div className="stat-title">
-                                        <span className="stat-dot total"></span>
-                                        Total Tasks
-                                    </div>
-
-                                    <strong>
-                                        {analytics.total_tasks}
-                                    </strong>
-
-                                </div>
-
-                                <div className="progress-track">
-                                    <div
-                                        className="progress-fill total-fill"
-                                        style={{
-                                            width: "100%"
-                                        }}
-                                    ></div>
-                                </div>
-
-
-                                <div className="stat-row">
-
-                                    <div className="stat-title">
-                                        <span className="stat-dot completed"></span>
-                                        Completed
-                                    </div>
-
-                                    <strong>
-                                        {analytics.completed_tasks}
-                                    </strong>
-
-                                </div>
-
-                                <div className="progress-track">
-
-                                    <div
-                                        className="progress-fill completed-fill"
-                                        style={{
-                                            width:
-                                                analytics.total_tasks > 0
-                                                    ? `${(
-                                                        analytics.completed_tasks /
-                                                        analytics.total_tasks
-                                                    ) * 100}%`
-                                                    : "0%"
-                                        }}
-                                    ></div>
-
-                                </div>
-
-
-                                <div className="stat-row">
-
-                                    <div className="stat-title">
-                                        <span className="stat-dot pending"></span>
-                                        Pending
-                                    </div>
-
-                                    <strong>
-                                        {analytics.pending_tasks}
-                                    </strong>
-
-                                </div>
-
-                                <div className="progress-track">
-
-                                    <div
-                                        className="progress-fill pending-fill"
-                                        style={{
-                                            width:
-                                                analytics.total_tasks > 0
-                                                    ? `${(
-                                                        analytics.pending_tasks /
-                                                        analytics.total_tasks
-                                                    ) * 100}%`
-                                                    : "0%"
-                                        }}
-                                    ></div>
-
-                                </div>
+                                <div
+                                    className="progress-fill pending-fill"
+                                    style={{
+                                        width: `${pendingRate}%`
+                                    }}
+                                />
 
                             </div>
 
                         </div>
 
+                    </div>
 
-                        <div className="analytics-panel">
-
-                            <div className="panel-header">
-
-                                <div>
-                                    <span className="panel-label">
-                                        AI SEARCH
-                                    </span>
-
-                                    <h2>Most Searched Queries</h2>
-                                </div>
-
-                                <span className="query-count">
-                                    {analytics.most_searched_queries?.length || 0}
-                                </span>
-
-                            </div>
-
-                            {analytics.most_searched_queries?.length === 0 ? (
-
-                                <div className="no-searches">
-                                    <div>🔍</div>
-
-                                    <h3>No searches yet</h3>
-
-                                    <p>
-                                        Your document search activity will appear here.
-                                    </p>
-                                </div>
-
-                            ) : (
-
-                                <div className="queries-list">
-
-                                    {analytics.most_searched_queries.map(
-                                        (item, index) => (
-
-                                            <div
-                                                className="query-item"
-                                                key={`${item.query}-${index}`}
-                                            >
-
-                                                <div className="query-rank">
-                                                    #{index + 1}
-                                                </div>
-
-                                                <div className="query-info">
-
-                                                    <strong>
-                                                        {item.query}
-                                                    </strong>
-
-                                                    <span>
-                                                        {item.count}{" "}
-                                                        {item.count === 1
-                                                            ? "search"
-                                                            : "searches"}
-                                                    </span>
-
-                                                </div>
-
-                                                <div className="query-count-badge">
-                                                    {item.count}
-                                                </div>
-
-                                            </div>
-
-                                        )
-                                    )}
-
-                                </div>
-
-                            )}
-
-                        </div>
-
-                    </section>
+                </div>
 
 
-                    <section className="analytics-summary">
+                {/* MOST SEARCHED QUERIES */}
+
+                <div className="analytics-panel search-panel">
+
+                    <div className="panel-header">
 
                         <div>
 
-                            <span>Completion Rate</span>
+                            <span className="panel-label">
+                                AI SEARCH
+                            </span>
 
-                            <strong>
-                                {analytics.total_tasks > 0
-                                    ? `${(
-                                        (
-                                            analytics.completed_tasks /
-                                            analytics.total_tasks
-                                        ) * 100
-                                    ).toFixed(1)}%`
-                                    : "0%"}
-                            </strong>
+                            <h2>
+                                Most Searched Queries
+                            </h2>
 
                         </div>
 
-                        <div>
 
-                            <span>Pending Rate</span>
+                        <div className="query-count">
 
-                            <strong>
-                                {analytics.total_tasks > 0
-                                    ? `${(
-                                        (
-                                            analytics.pending_tasks /
-                                            analytics.total_tasks
-                                        ) * 100
-                                    ).toFixed(1)}%`
-                                    : "0%"}
-                            </strong>
+                            {searches.length}
 
                         </div>
 
-                        <div>
+                    </div>
 
-                            <span>Search Activity</span>
 
-                            <strong>
-                                {analytics.most_searched_queries?.reduce(
-                                    (total, item) =>
-                                        total + item.count,
-                                    0
-                                ) || 0}
-                            </strong>
+                    {searches.length > 0 ? (
+
+                        <div className="queries-list">
+
+                            {searches.map((item, index) => (
+
+                                <div
+                                    className="query-item"
+                                    key={`${item.query}-${index}`}
+                                >
+
+                                    <div className="query-rank">
+
+                                        #{index + 1}
+
+                                    </div>
+
+
+                                    <div className="query-info">
+
+                                        <strong>
+                                            {item.query}
+                                        </strong>
+
+                                        <span>
+
+                                            {item.count}{" "}
+
+                                            {item.count === 1
+                                                ? "search"
+                                                : "searches"
+                                            }
+
+                                        </span>
+
+                                    </div>
+
+
+                                    <div className="query-count-badge">
+
+                                        {item.count}
+
+                                    </div>
+
+                                </div>
+
+                            ))}
 
                         </div>
 
-                    </section>
+                    ) : (
 
-                </>
-            )}
+                        <div className="no-searches">
+
+                            <div>
+                                <Search size={25} />
+                            </div>
+
+                            <h3>
+                                No searches yet
+                            </h3>
+
+                            <p>
+                                Your document search activity will appear here.
+                            </p>
+
+                        </div>
+
+                    )}
+
+                </div>
+
+            </div>
+
+
+            {/* SUMMARY */}
+
+            <div className="analytics-summary">
+
+                <div>
+
+                    <span>
+                        Completion Rate
+                    </span>
+
+                    <strong>
+                        {completionRate}%
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    <span>
+                        In Progress Rate
+                    </span>
+
+                    <strong>
+                        {inProgressRate}%
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    <span>
+                        Pending Rate
+                    </span>
+
+                    <strong>
+                        {pendingRate}%
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    <span>
+                        Search Activity
+                    </span>
+
+                    <strong>
+                        {totalSearchActivity}
+                    </strong>
+
+                </div>
+
+            </div>
 
         </div>
     );
 }
+
 
 export default Analytics;

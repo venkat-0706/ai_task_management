@@ -35,3 +35,14 @@ def create_user(
     return user
 
 
+@router.get("/", response_model=list[UserResponse])
+def get_users(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_admin)
+):
+    return (
+        db.query(User)
+        .filter(User.is_active == True)
+        .order_by(User.name.asc())
+        .all()
+    )

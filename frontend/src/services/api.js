@@ -6,16 +6,20 @@ const api = axios.create({
 
 api.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem("access_token");
+        const token = localStorage.getItem(
+            "access_token"
+        );
 
         if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
+            config.headers.Authorization =
+                `Bearer ${token}`;
         }
 
         if (config.data instanceof FormData) {
             delete config.headers["Content-Type"];
         } else {
-            config.headers["Content-Type"] = "application/json";
+            config.headers["Content-Type"] =
+                "application/json";
         }
 
         return config;
@@ -27,13 +31,25 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
     (response) => response,
-    (error) => {
-        if (error.response?.status === 401) {
-            localStorage.removeItem("access_token");
-            localStorage.removeItem("user");
 
-            if (window.location.pathname !== "/login") {
-                window.location.href = "/login";
+    (error) => {
+        if (
+            error.response?.status === 401
+        ) {
+            localStorage.removeItem(
+                "access_token"
+            );
+
+            localStorage.removeItem(
+                "user"
+            );
+
+            if (
+                window.location.pathname !==
+                "/login"
+            ) {
+                window.location.href =
+                    "/login";
             }
         }
 

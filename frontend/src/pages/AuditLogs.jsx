@@ -3,297 +3,540 @@ import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import "./AuditLogs.css";
 
-function AuditLogs() {
+function AuditLog() {
     const navigate = useNavigate();
 
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [refreshing, setRefreshing] = useState(false);
 
-    const fetchAuditLogs = async () => {
+    const fetchLogs = async (showRefresh = false) => {
         try {
-            setLoading(true);
+            if (showRefresh) {
+                setRefreshing(true);
+            } else {
+                setLoading(true);
+            }
+
             setError("");
 
-            const response = await api.get("/audit-logs/");
+            const response = await api.get("/audit-logs");
 
-            setLogs(response.data || []);
+            /*
+                Supports different backend response formats:
+
+                [
+                    {...},
+                    {...}
+                ]
+
+                OR
+
+                {
+                    logs: [...]
+                }
+
+                OR
+
+                {
+                    activities: [...]
+                }
+            */
+
+            const data = response.data;
+
+            if (Array.isArray(data)) {
+                setLogs(data);
+            } else if (Array.isArray(data.logs)) {
+                setLogs(data.logs);
+            } else if (Array.isArray(data.activities)) {
+                setLogs(data.activities);
+            } else {
+                setLogs([]);
+            }
+
         } catch (err) {
-            console.error(err);
-
-            if (err.response?.status === 401) {
-                localStorage.removeItem("access_token");
-                localStorage.removeItem("user");
-                navigate("/login");
-                return;
-            }
-
-            if (err.response?.status === 403) {
-                setError(
-                    "Access denied. Only administrators can view audit logs."
-                );
-                return;
-            }
+            console.error("Failed to fetch audit logs:", err);
 
             setError(
                 err.response?.data?.detail ||
-                "Unable to load audit logs."
+                "Failed to load audit logs. Please try again."
             );
+
         } finally {
             setLoading(false);
+            setRefreshing(false);
         }
     };
+
 
     useEffect(() => {
-        fetchAuditLogs();
+        fetchLogs();
     }, []);
 
-    const formatAction = (action) => {
-        if (!action) {
-            return "UNKNOWN";
+
+    const getActionDetails = (action) => {
+        const normalizedAction = action?.toUpperCase() || "";
+
+        if (normalizedAction === "LOGIN") {
+            return {
+                label: "Login",
+                icon: "🔐",
+                className: "action-login",
+            };
         }
 
-        return action
-            .replaceAll("_", " ")
-            .toLowerCase()
-            .replace(/\b\w/g, (letter) => letter.toUpperCase());
-    };
-
-    const getActionClass = (action) => {
-        if (!action) {
-            return "action-default";
+        if (normalizedAction === "DOCUMENT_UPLOAD") {
+            return {
+                label: "Document Upload",
+                icon: "📄",
+                className: "action-document-upload",
+            };
         }
 
-        return `action-${action.toLowerCase()}`;
+        if (normalizedAction === "DOCUMENT_SEARCH") {
+            return {
+                label: "Document Search",
+                icon: "🔎",
+                className: "action-document-search",
+            };
+        }
+
+        if (normalizedAction === "TASK_CREATED") {
+            return {
+                label: "Task Created",
+                icon: "➕",
+                className: "action-task-created",
+            };
+        }
+
+        if (normalizedAction === "TASK_UPDATE") {
+            return {
+                label: "Task Updated",
+                icon: "📝",
+                className: "action-task-updated",
+            };
+        }
+
+        if (normalizedAction === "TASK_UPDATED") {
+            return {
+                label: "Task Updated",
+                icon: "📝",
+                className: "action-task-updated",
+            };
+        }
+
+        if (normalizedAction === "TASK_COMPLETED") {
+            return {
+                label: "Task Completed",
+                icon: "✓",
+                className: "action-task-completed",
+            };
+        }
+
+        if (normalizedAction === "TASK_DELETE") {
+            return {
+                label: "Task Deleted",
+                icon: "🗑️",
+                className: "action-task-deleted",
+            };
+        }
+
+        if (normalizedAction === "TASK_DELETED") {
+            return {
+                label: "Task Deleted",
+                icon: "🗑️",
+                className: "action-task-deleted",
+            };
+        }
+
+        return {
+            label: action || "System Activity",
+            icon: "⚡",
+            className: "action-default",
+        };
     };
 
-    const formatDate = (date) => {
-        if (!date) {
+
+    const formatDate = (dateValue) => {
+        if (!dateValue) {
             return "N/A";
         }
 
-        return new Date(date).toLocaleString();
+        try {
+            return new Date(dateValue).toLocaleString(
+                "en-IN",
+                {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                }
+            );
+        } catch {
+            return dateValue;
+        }
     };
+
 
     return (
         <div className="audit-page">
 
-            <header className="audit-header">
+            <div className="audit-container">
 
-                <div className="audit-title-area">
+                {/* HEADER */}
 
-                    <span className="audit-label">
-                        SYSTEM ADMINISTRATION
-                    </span>
+                <section className="audit-header">
 
-                    <h1>Audit Logs</h1>
+                    <div className="audit-header-left">
 
-                    <p>
-                        Monitor system activity and track important user actions.
-                    </p>
+                        <span className="audit-label">
+                            SYSTEM ADMINISTRATION
+                        </span>
 
-                </div>
-
-                <button
-                    className="audit-dashboard-button"
-                    onClick={() => navigate("/dashboard")}
-                >
-                    ← Dashboard
-                </button>
-
-            </header>
-
-            <section className="audit-summary">
-
-                <div className="audit-summary-card">
-
-                    <div className="summary-icon">
-                        ◉
-                    </div>
-
-                    <div>
-                        <span>Total Activities</span>
-                        <strong>{logs.length}</strong>
-                    </div>
-
-                </div>
-
-                <div className="audit-summary-card">
-
-                    <div className="summary-icon">
-                        ✓
-                    </div>
-
-                    <div>
-                        <span>System Status</span>
-                        <strong>Active</strong>
-                    </div>
-
-                </div>
-
-                <div className="audit-summary-card">
-
-                    <div className="summary-icon">
-                        🛡
-                    </div>
-
-                    <div>
-                        <span>Access Level</span>
-                        <strong>Admin</strong>
-                    </div>
-
-                </div>
-
-            </section>
-
-            <section className="audit-card">
-
-                <div className="audit-card-header">
-
-                    <div>
-                        <h2>Activity History</h2>
+                        <h1>
+                            Audit Logs
+                        </h1>
 
                         <p>
-                            Recent actions recorded by the system.
+                            Monitor system activity and track important user actions.
                         </p>
+
                     </div>
+
 
                     <button
-                        className="refresh-button"
-                        onClick={fetchAuditLogs}
-                        disabled={loading}
+                        className="back-button"
+                        onClick={() => navigate("/dashboard")}
                     >
-                        ↻ {loading ? "Refreshing..." : "Refresh"}
+                        ← Back to Dashboard
                     </button>
 
-                </div>
+                </section>
 
-                {loading && (
-                    <div className="audit-state">
 
-                        <div className="audit-spinner"></div>
+                {/* STATISTICS */}
 
-                        <p>
-                            Loading audit logs...
-                        </p>
+                <section className="audit-stats">
+
+                    <div className="audit-stat-card">
+
+                        <div className="stat-icon stat-purple">
+                            📊
+                        </div>
+
+                        <div className="stat-info">
+
+                            <span className="stat-label">
+                                Total Activities
+                            </span>
+
+                            <strong className="stat-value">
+                                {logs.length}
+                            </strong>
+
+                        </div>
 
                     </div>
-                )}
 
-                {!loading && error && (
+
+                    <div className="audit-stat-card">
+
+                        <div className="stat-icon stat-green">
+                            ✓
+                        </div>
+
+                        <div className="stat-info">
+
+                            <span className="stat-label">
+                                System Status
+                            </span>
+
+                            <strong className="stat-value success-value">
+                                Active
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                    <div className="audit-stat-card">
+
+                        <div className="stat-icon stat-blue">
+                            🛡️
+                        </div>
+
+                        <div className="stat-info">
+
+                            <span className="stat-label">
+                                Access Level
+                            </span>
+
+                            <strong className="stat-value">
+                                Administrator
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                {/* ERROR */}
+
+                {error && (
                     <div className="audit-error">
 
-                        <div className="error-icon">
-                            !
-                        </div>
+                        <span>⚠️</span>
 
-                        <div>
-                            <h3>Unable to load logs</h3>
+                        <span>
+                            {error}
+                        </span>
+
+                    </div>
+                )}
+
+
+                {/* ACTIVITY HISTORY */}
+
+                <section className="activity-container">
+
+                    <div className="activity-header">
+
+                        <div className="activity-title-section">
+
+                            <span className="activity-label">
+                                SYSTEM ACTIVITY
+                            </span>
+
+                            <h2>
+                                Activity History
+                            </h2>
 
                             <p>
-                                {error}
+                                Recent actions recorded by the system.
                             </p>
+
                         </div>
 
+
+                        <button
+                            className="refresh-button"
+                            onClick={() => fetchLogs(true)}
+                            disabled={refreshing}
+                        >
+                            {refreshing
+                                ? "Refreshing..."
+                                : "↻ Refresh"}
+                        </button>
+
                     </div>
-                )}
 
-                {!loading && !error && logs.length === 0 && (
-                    <div className="audit-empty">
 
-                        <div className="empty-icon">
-                            ◉
+                    {/* LOADING */}
+
+                    {loading ? (
+
+                        <div className="audit-loading">
+
+                            <div className="loading-spinner"></div>
+
+                            <p>
+                                Loading audit logs...
+                            </p>
+
                         </div>
 
-                        <h3>
-                            No activity recorded
-                        </h3>
+                    ) : logs.length === 0 ? (
 
-                        <p>
-                            System activity will appear here when users perform actions.
-                        </p>
+                        <div className="audit-empty">
 
-                    </div>
-                )}
+                            <div className="audit-empty-icon">
+                                📋
+                            </div>
 
-                {!loading && !error && logs.length > 0 && (
-                    <div className="audit-table-wrapper">
+                            <h3>
+                                No Activity Found
+                            </h3>
 
-                        <table className="audit-table">
+                            <p>
+                                System activity will appear here.
+                            </p>
 
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>User</th>
-                                    <th>Action</th>
-                                    <th>Details</th>
-                                    <th>Date & Time</th>
-                                </tr>
-                            </thead>
+                        </div>
 
-                            <tbody>
+                    ) : (
 
-                                {logs.map((log) => (
+                        <div className="audit-table-wrapper">
 
-                                    <tr key={log.id}>
+                            <table className="audit-table">
 
-                                        <td>
-                                            <span className="log-id">
-                                                #{log.id}
-                                            </span>
-                                        </td>
+                                <thead>
 
-                                        <td>
-                                            <div className="user-cell">
+                                    <tr>
 
-                                                <div className="user-avatar">
-                                                    {log.user_id || "?"}
-                                                </div>
+                                        <th>
+                                            ID
+                                        </th>
 
-                                                <span>
-                                                    User #{log.user_id || "N/A"}
-                                                </span>
+                                        <th>
+                                            User
+                                        </th>
 
-                                            </div>
-                                        </td>
+                                        <th>
+                                            Action
+                                        </th>
 
-                                        <td>
-                                            <span
-                                                className={`action-badge ${getActionClass(
-                                                    log.action
-                                                )}`}
-                                            >
-                                                {formatAction(log.action)}
-                                            </span>
-                                        </td>
+                                        <th>
+                                            Details
+                                        </th>
 
-                                        <td>
-                                            <div className="details-cell">
-                                                {log.details || "No details available"}
-                                            </div>
-                                        </td>
-
-                                        <td>
-                                            <span className="date-cell">
-                                                {formatDate(log.created_at)}
-                                            </span>
-                                        </td>
+                                        <th>
+                                            Date & Time
+                                        </th>
 
                                     </tr>
 
-                                ))}
+                                </thead>
 
-                            </tbody>
 
-                        </table>
+                                <tbody>
 
-                    </div>
-                )}
+                                    {logs.map((log) => {
 
-            </section>
+                                        const actionInfo =
+                                            getActionDetails(
+                                                log.action
+                                            );
+
+                                        const userName =
+                                            log.user?.email ||
+                                            log.user_email ||
+                                            log.email ||
+                                            `User #${log.user_id || "N/A"}`;
+
+                                        const firstLetter =
+                                            userName
+                                                ?.charAt(0)
+                                                ?.toUpperCase() || "U";
+
+                                        return (
+
+                                            <tr
+                                                key={
+                                                    log.id ||
+                                                    Math.random()
+                                                }
+                                            >
+
+                                                {/* ID */}
+
+                                                <td>
+
+                                                    <span className="audit-id">
+                                                        #{log.id}
+                                                    </span>
+
+                                                </td>
+
+
+                                                {/* USER */}
+
+                                                <td>
+
+                                                    <div className="audit-user">
+
+                                                        <div className="user-avatar">
+                                                            {firstLetter}
+                                                        </div>
+
+                                                        <div className="user-info">
+
+                                                            <span className="user-name">
+                                                                {userName}
+                                                            </span>
+
+                                                            <span className="user-id">
+                                                                User ID: {log.user_id || "N/A"}
+                                                            </span>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </td>
+
+
+                                                {/* ACTION */}
+
+                                                <td>
+
+                                                    <span
+                                                        className={`action-badge ${actionInfo.className}`}
+                                                    >
+
+                                                        <span>
+                                                            {actionInfo.icon}
+                                                        </span>
+
+                                                        {actionInfo.label}
+
+                                                    </span>
+
+                                                </td>
+
+
+                                                {/* DETAILS */}
+
+                                                <td>
+
+                                                    <div className="audit-details">
+                                                        {log.details ||
+                                                            "No additional details available"}
+                                                    </div>
+
+                                                </td>
+
+
+                                                {/* DATE */}
+
+                                                <td>
+
+                                                    <span className="audit-date">
+
+                                                        {formatDate(
+                                                            log.created_at ||
+                                                            log.timestamp ||
+                                                            log.date
+                                                        )}
+
+                                                    </span>
+
+                                                </td>
+
+                                            </tr>
+
+                                        );
+                                    })}
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                    )}
+
+                </section>
+
+            </div>
 
         </div>
     );
 }
 
-export default AuditLogs;
+export default AuditLog;

@@ -9,6 +9,7 @@ from app.routers.document import router as document_router
 from app.routers.analytics import router as analytics_router
 from app.routers.audit_log import router as audit_log_router
 
+
 app = FastAPI(
     title="AI Task Management API",
     description="Backend API for AI-powered task management",
@@ -37,6 +38,7 @@ app.include_router(ai_router)
 app.include_router(document_router)
 app.include_router(analytics_router)
 app.include_router(audit_log_router)
+
 
 @app.get("/")
 def root():

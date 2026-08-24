@@ -30,6 +30,12 @@ def get_analytics(
         Task.status == "completed"
     ).count()
 
+    in_progress_tasks = db.query(Task).filter(
+        (Task.created_by == current_user.id) |
+        (Task.assigned_to == current_user.id),
+        Task.status == "in_progress"
+    ).count()
+
     pending_tasks = db.query(Task).filter(
         (Task.created_by == current_user.id) |
         (Task.assigned_to == current_user.id),
@@ -64,6 +70,7 @@ def get_analytics(
     return {
         "total_tasks": total_tasks,
         "completed_tasks": completed_tasks,
+        "in_progress_tasks": in_progress_tasks,
         "pending_tasks": pending_tasks,
         "most_searched_queries": most_searched_queries
     }

@@ -33,28 +33,21 @@ function Login() {
                 password: formData.password,
             });
 
-            const token = response.data.access_token;
+            const { access_token, user } = response.data;
 
+            // Save token
             localStorage.setItem(
                 "access_token",
-                token
+                access_token
             );
 
-            const user = response.data.user;
+            // Save complete user information
+            localStorage.setItem(
+                "user",
+                JSON.stringify(user)
+            );
 
-            if (user) {
-                localStorage.setItem(
-                    "user",
-                    JSON.stringify(user)
-                );
-            } else {
-                localStorage.setItem(
-                    "user",
-                    JSON.stringify({
-                        email: formData.email,
-                    })
-                );
-            }
+            console.log("Logged in user:", user);
 
             navigate("/dashboard");
 

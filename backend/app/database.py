@@ -1,31 +1,36 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, DeclarativeBase
-from pydantic_settings import BaseSettings
+from sqlalchemy.orm import sessionmaker, declarative_base
+import os
+
+from dotenv import load_dotenv
 
 
-class Settings(BaseSettings):
-    DATABASE_URL: str
-
-    class Config:
-        env_file = ".env"
+# Load variables from .env
+load_dotenv()
 
 
-settings = Settings()
+# Get database URL from environment
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL is not set in the .env file")
+
 
 engine = create_engine(
-    settings.DATABASE_URL,
-    echo=True
+    DATABASE_URL,
+    pool_pre_ping=True
 )
+
 
 SessionLocal = sessionmaker(
-    bind=engine,
+    autocommit=False,
     autoflush=False,
-    autocommit=False
+    bind=engine
 )
 
 
-class Base(DeclarativeBase):
-    pass
+Base = declarative_base()
 
 
 def get_db():
@@ -33,5 +38,6 @@ def get_db():
 
     try:
         yield db
+
     finally:
         db.close()

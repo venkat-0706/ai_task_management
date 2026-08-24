@@ -19,9 +19,11 @@ def login(
     login_data: LoginRequest,
     db: Session = Depends(get_db)
 ):
-    user = db.query(User).filter(
-        User.email == login_data.email
-    ).first()
+    user = (
+        db.query(User)
+        .filter(User.email == login_data.email)
+        .first()
+    )
 
     if user is None:
         raise HTTPException(
@@ -38,6 +40,7 @@ def login(
             detail="Invalid email or password"
         )
 
+    # Create audit log
     activity = ActivityLog(
         user_id=user.id,
         action="LOGIN",
@@ -47,12 +50,20 @@ def login(
     db.add(activity)
     db.commit()
 
+    # Create JWT token
     access_token = create_access_token({
         "sub": str(user.id),
-        "email": user.email
+        "email": user.email,
+        "role": user.role
     })
 
+    # Return token + user information
     return {
         "access_token": access_token,
-        "token_type": "bearer"
+        "token_type": "bearer",
+        "user": {
+            "id": user.id,
+            "email": user.email,
+            "role": user.role
+        }
     }
